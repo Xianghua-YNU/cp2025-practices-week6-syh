@@ -1,72 +1,69 @@
-import numpy as np 
+import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib import animation
+from matplotlib.animation import FuncAnimation
 
 def sineWaveZeroPhi(x, t, A, omega, k):
-    '''
-    返回位置x和时间t的波函数值
+    """
+    计算波函数y(x,t) = A*sin(kx - ωt)
+    
     参数:
-    x : 空间位置 (array)
-    t : 时间 (float)
-    A : 振幅 (float)
-    omega : 角频率 (float)
-    k : 波数 (float)
-    '''
-    # TODO: 实现正弦波函数
-    # 提示：使用 np.sin() 函数计算 A * sin(kx - ωt)
-    pass
+    x : 空间位置数组
+    t : 时间值
+    A : 振幅
+    omega : 角频率
+    k : 波数
+    """
+    return A * np.sin(k * x - omega * t)
 
-# 创建动画所需的 Figure 和 Axes
-fig = plt.figure()
-subplot = plt.axes(xlim=(0, 10), xlabel="x", ylim=(-2, 2), ylabel="y")
+# 创建绘图窗口和坐标轴
+fig, ax = plt.subplots(figsize=(10, 5))
+ax.set_xlim(0, 10)
+ax.set_ylim(-2, 2)
+ax.set_xlabel('x (m)')
+ax.set_ylabel('Amplitude (m)')
+ax.grid(True, linestyle='--', alpha=0.7)
 
-# 创建空的line对象，用于动画显示
-line1, = subplot.plot([], [], lw=2)
-line2, = subplot.plot([], [], lw=2)
-line3, = subplot.plot([], [], lw=2)
-
-# 创建一个line对象列表，便于操作
-lines = [line1, line2, line3]
+# 创建不同颜色的线条对象
+right_wave, = ax.plot([], [], 'b-', lw=2, label='Right Traveling')
+left_wave, = ax.plot([], [], 'r--', lw=2, label='Left Traveling')
+standing_wave, = ax.plot([], [], 'g-', lw=3, label='Standing Wave')
+lines = [right_wave, left_wave, standing_wave]
 
 def init():
-    '''
-    动画初始化函数
-    TODO: 清空所有line的数据并返回lines列表
-    '''
-    # 提示：使用line.set_data([], [])设置空数据
-    pass
+    """初始化动画"""
+    for line in lines:
+        line.set_data([], [])
+    return lines
 
-# 创建空间变量x
+# 生成空间网格
 x = np.linspace(0, 10, 1000)
 
-def animate(i):
-    '''
-    动画更新函数
-    参数: i - 帧序号，自动递增
-    TODO: 计算并更新每一帧的波形数据
-    '''
-    # 定义波的参数
-    A = 1
-    omega = 2 * np.pi
-    k = np.pi / 2
-    t = 0.01 * i
+def animate(frame):
+    """更新每一帧的数据"""
+    A = 1.0
+    omega = 2 * np.pi  # 2Hz频率
+    k = np.pi / 2      # 波长4m
+    t = 0.01 * frame    # 时间步长
 
-    # TODO: 计算两个方向相反的波
-    # 提示：使用sineWaveZeroPhi函数，注意第二个波的omega要取负值
-    y1 = None
-    y2 = None
+    # 计算两个方向相反的行波
+    y_right = sineWaveZeroPhi(x, t, A, omega, k)
+    y_left = sineWaveZeroPhi(x, t, A, -omega, k)
+    
+    # 叠加形成驻波
+    y_standing = y_right + y_left
 
-    # TODO: 计算驻波（两波之和）
-    y3 = None
-
-    # TODO: 更新每个line的数据
-    # 提示：使用line.set_data(x, y)设置数据
-    # 提示：waveFunctions = [[x, y1], [x, y2], [x, y3]]可以帮助组织数据
-
+    # 更新线条数据
+    lines[0].set_data(x, y_right)
+    lines[1].set_data(x, y_left)
+    lines[2].set_data(x, y_standing)
+    
     return lines
-if __name__ == '__main__':
-    # TODO: 创建动画对象并显示
-    # 提示：使用animation.FuncAnimation创建动画
-    # 提示：使用plt.show()显示动画
-    pass
 
+if __name__ == "__main__":
+    # 创建动画
+    anim = FuncAnimation(fig, animate, init_func=init,
+                        frames=200, interval=20, blit=True)
+    
+    ax.legend()
+    plt.tight_layout()
+    plt.show()
